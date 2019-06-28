@@ -14,7 +14,10 @@ class LambdaDemo extends Component {
     this.setState({loading: true});
     fetch('/.netlify/functions/' + api)
       .then(response => response.json())
-      .then(json => this.setState({loading: false, msg: json.msg}));
+      .then(json => {
+        this.setState({loading: false, msg: 'wow'});
+        console.log(json);
+      });
   };
 
   render() {
@@ -24,9 +27,6 @@ class LambdaDemo extends Component {
       <p>
         <button onClick={this.handleClick('hello')}>
           {loading ? 'Loading...' : 'Call Lambda'}
-        </button>
-        <button onClick={this.handleClick('async-dadjoke')}>
-          {loading ? 'Loading...' : 'Call Async Lambda'}
         </button>
         <br />
         <span>{msg}</span>
