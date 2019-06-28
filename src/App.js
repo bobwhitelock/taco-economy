@@ -25,7 +25,7 @@ class LambdaDemo extends Component {
 
     return (
       <p>
-        <button onClick={this.handleClick('hello')}>
+        <button onClick={this.handleClick('tacos')}>
           {loading ? 'Loading...' : 'Call Lambda'}
         </button>
         <br />
