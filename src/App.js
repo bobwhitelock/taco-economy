@@ -1,40 +1,41 @@
 import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
+import _ from 'lodash';
 
 class LambdaDemo extends Component {
   constructor(props) {
     super(props);
-    this.state = {loading: false, msg: null};
+    this.state = {users: {}, tacos: {}};
   }
 
-  handleClick = api => e => {
-    e.preventDefault();
+  componentDidMount() {
+    // XXX Do this better (and with async?), and maybe move some stuff to
+    // functions rather than doing on client
 
-    this.setState({loading: true});
-    fetch('/.netlify/functions/' + api)
-      .then(response => response.json())
-      .then(json => {
-        this.setState({loading: false, msg: 'wow'});
-        console.log(json);
-      });
-  };
+    const request = endpoint =>
+      fetch(`/.netlify/functions/${endpoint}`).then(response =>
+        response.json(),
+      );
+
+    Promise.all([request('users'), request('tacos')]).then(([users, tacos]) => {
+      users = users['users'];
+      tacos = tacos['tacos'];
+
+      const usersIndexedById = _(users)
+        .groupBy('id')
+        .mapValues(us => us[0])
+        .value();
+
+      this.setState({users: usersIndexedById, tacos});
+    });
+  }
 
   render() {
-    const {loading, msg} = this.state;
-
-    return (
-      <p>
-        <button onClick={this.handleClick('tacos')}>
-          {loading ? 'Loading...' : 'Call Lambda'}
-        </button>
-        <button onClick={this.handleClick('users')}>
-          {loading ? 'Loading...' : 'Call users Lambda'}
-        </button>
-        <br />
-        <span>{msg}</span>
-      </p>
-    );
+    const {users, tacos} = this.state;
+    console.log('users:', users);
+    console.log('tacos:', tacos);
+    return <p />;
   }
 }
 
@@ -43,10 +44,6 @@ class App extends Component {
     return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
           <LambdaDemo />
         </header>
       </div>
