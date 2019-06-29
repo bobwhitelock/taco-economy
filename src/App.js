@@ -27,14 +27,65 @@ class LambdaDemo extends Component {
         .mapValues(us => us[0])
         .value();
 
-      this.setState({users: usersIndexedById, tacos});
+      const unknownUserName = 'Unknown';
+
+      const tacosWithoutNulls = _.map(tacos, t => {
+        const userFrom = t.userFrom || unknownUserName;
+        const userTo = t.userTo || unknownUserName;
+        return {...t, userFrom, userTo};
+      });
+
+      usersIndexedById.unknownUserName = {
+        id: unknownUserName,
+        name: unknownUserName,
+      };
+
+      this.setState({users: usersIndexedById, tacos: tacosWithoutNulls});
     });
   }
 
   render() {
     const {users, tacos} = this.state;
+
+    const nodes = _.map(users, ({id, name}) => {
+      return {name: `@${name}`, id};
+    });
+
+    const links_ = _(tacos)
+      .map(({userFrom, userTo}) => {
+        return {
+          source: userFrom,
+          target: userTo,
+        };
+      })
+      .reduce((accumulator, tacoEvent) => {
+        if (!accumulator[tacoEvent.source]) {
+          accumulator[tacoEvent.source] = {};
+        }
+
+        if (!accumulator[tacoEvent.source][tacoEvent.target]) {
+          accumulator[tacoEvent.source][tacoEvent.target] = {
+            ...tacoEvent,
+            occurences: 1,
+          };
+        } else {
+          const existingEvent = accumulator[tacoEvent.source][tacoEvent.target];
+          existingEvent.occurences += 1;
+        }
+
+        return accumulator;
+      }, {});
+
+    const links = _(links_)
+      .values()
+      .map(_.values)
+      .flattenDeep()
+      .value();
+
     console.log('users:', users);
     console.log('tacos:', tacos);
+    console.log('nodes:', nodes);
+    console.log('links:', links);
     return <p />;
   }
 }
