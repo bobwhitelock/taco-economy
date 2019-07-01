@@ -3,8 +3,8 @@ import './App.css';
 import _ from 'lodash';
 const d3 = require('d3');
 
-const WIDTH = 1600;
-const HEIGHT = 1000;
+const WIDTH = '4000';
+const HEIGHT = '2000';
 const GRAPH_ROOT_ID = 'graph-root';
 
 // All force-directed graph stuff copied and adapted from
@@ -35,19 +35,18 @@ const drag = simulation => {
     .on('end', dragended);
 };
 
-function drawD3Graph(data) {
+function drawD3Graph({nodes, links}) {
   const svg = d3.select(`#${GRAPH_ROOT_ID}`);
   if (!svg) {
     return;
   }
 
-  const links = data.links.map(d => Object.create(d));
-  const nodes = data.nodes.map(d => Object.create(d));
+  const manyBody = d3.forceManyBody().strength(-1000);
 
   const simulation = d3
     .forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id))
-    .force('charge', d3.forceManyBody())
+    .force('charge', manyBody)
     .force('center', d3.forceCenter(WIDTH / 2, HEIGHT / 2));
 
   svg.attr('viewBox', [0, 0, WIDTH, HEIGHT]);
@@ -59,7 +58,7 @@ function drawD3Graph(data) {
     .selectAll('line')
     .data(links)
     .join('line')
-    .attr('stroke-width', d => Math.sqrt(d.value));
+    .attr('stroke-width', d => 1 + Math.sqrt(d.occurences));
 
   const node = svg
     .append('g')
@@ -68,12 +67,19 @@ function drawD3Graph(data) {
     .selectAll('circle')
     .data(nodes)
     .join('circle')
-    .attr('r', 5)
+    .attr('r', d => {
+      return 5 + Math.sqrt(d.tacosCount);
+    })
     // XXX colours
     .attr('fill', 'gray')
+    .attr('tabindex', 0)
     .call(drag(simulation));
 
-  node.append('title').text(d => d.name);
+  node
+    .append('title')
+    .text(
+      d => `${d.name} - ${d.tacosCount} taco${d.tacosCount === 1 ? '' : 's'}`,
+    );
 
   simulation.on('tick', () => {
     link
@@ -125,15 +131,33 @@ class DrawGraph extends Component {
         name: unknownUserName,
       };
 
-      this.setState({users: usersIndexedById, tacos: tacosWithoutNulls});
+      const usersWithNoTacosYet = _.mapValues(usersIndexedById, u => {
+        u.tacosCount = 0;
+        return u;
+      });
+
+      const usersWithTacos = _.reduce(
+        tacosWithoutNulls,
+        (accumulator, taco) => {
+          const userToId = taco.userTo;
+          const userTo = accumulator[userToId];
+          if (userTo) {
+            userTo.tacosCount += 1;
+          }
+          return accumulator;
+        },
+        usersWithNoTacosYet,
+      );
+
+      this.setState({users: usersWithTacos, tacos: tacosWithoutNulls});
     });
   }
 
   render() {
     const {users, tacos} = this.state;
 
-    const nodes = _.map(users, ({id, name}) => {
-      return {name: `@${name}`, id};
+    const nodes = _.map(users, user => {
+      return {...user, name: `@${user.name}`};
     });
 
     const links_ = _(tacos)
@@ -183,7 +207,7 @@ class App extends Component {
     return (
       <div className="App">
         <header className="App-header">
-          <svg id={GRAPH_ROOT_ID} width={WIDTH} height={HEIGHT} />
+          <svg id={GRAPH_ROOT_ID} width="100%" height="100%" />
           <DrawGraph />
         </header>
       </div>
