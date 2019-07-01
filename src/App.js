@@ -41,6 +41,25 @@ function drawD3Graph({nodes, links}) {
     return;
   }
 
+  // This and usage adapted from
+  // https://github.com/LironHazan/directed-graph-flow-experiments/blob/3dfa7666c5e8a24a499d93a01110a60b8c2b3fb8/src/utils.js
+  const defs = svg.append('defs');
+  const marker = defs.append('marker');
+  marker
+    .attr('id', 'arrowhead')
+    .attr('viewBox', '-0 -5 10 10')
+    .attr('refX', 34)
+    .attr('refY', 0)
+    .attr('orient', 'auto')
+    .attr('markerWidth', 8)
+    .attr('markerHeight', 8)
+    .attr('xoverflow', 'visible');
+  marker
+    .append('svg:path')
+    .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+    .attr('fill', '#999')
+    .style('stroke', 'none');
+
   const manyBody = d3.forceManyBody().strength(-1000);
 
   const simulation = d3
@@ -58,7 +77,8 @@ function drawD3Graph({nodes, links}) {
     .selectAll('line')
     .data(links)
     .join('line')
-    .attr('stroke-width', d => 1 + Math.sqrt(d.occurences));
+    .attr('stroke-width', d => 1 + Math.sqrt(d.occurences))
+    .attr('marker-end', 'url(#arrowhead)');
 
   const node = svg
     .append('g')
