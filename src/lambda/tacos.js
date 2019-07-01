@@ -23,7 +23,7 @@ export function handler(event, context, callback) {
       .toArray()
       .then(tacos => {
         // eslint-disable-next-line no-console
-        // console.error('tacos [kesdsrvh]:', tacos);
+        console.error('tacos [kesdsrvh]:', tacos);
         const error = null;
         const response = {
           statusCode: 200,
