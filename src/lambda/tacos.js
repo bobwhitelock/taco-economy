@@ -22,8 +22,6 @@ export function handler(event, context, callback) {
       .find({})
       .toArray()
       .then(tacos => {
-        // eslint-disable-next-line no-console
-        console.error('tacos [kesdsrvh]:', tacos);
         const error = null;
         const response = {
           statusCode: 200,
@@ -31,6 +29,7 @@ export function handler(event, context, callback) {
         };
 
         return callback(error, response);
-      }, console.error);
+      })
+      .catch(console.error);
   });
 }
