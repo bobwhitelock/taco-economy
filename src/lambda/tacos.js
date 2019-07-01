@@ -4,6 +4,8 @@ const mongodb_uri = process.env.MONGODB_URI;
 
 export function handler(event, context, callback) {
   return MongoClient.connect(mongodb_uri, function(err, client) {
+    // eslint-disable-next-line no-console
+    console.log('mongodb_uri [gklzwgxp]:', mongodb_uri);
     if (err) {
       throw err;
     }
@@ -14,6 +16,8 @@ export function handler(event, context, callback) {
       .find({})
       .toArray()
       .then(tacos => {
+        // eslint-disable-next-line no-console
+        console.log('tacos [kesdsrvh]:', tacos);
         const error = null;
         const response = {
           statusCode: 200,
